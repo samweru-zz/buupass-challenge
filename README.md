@@ -8,6 +8,8 @@ Permissions are used to enforce role based access on routes (RBAC)
 # Sample Code
 
 ```python
+# Found in rbac/api.py
+
 @api.post("/user/{user_id}", auth=AuthBearer())
 @permissions("view_user")
 def user(request, user_id:int):
