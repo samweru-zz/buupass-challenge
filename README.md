@@ -5,6 +5,22 @@ This project uses a expirable bearer token which is received after login.
 The token is used for every request that requires authorization. 
 Permissions are used to enforce role based access on routes (RBAC)
 
+# Sample Code
+
+```python
+@api.post("/user/{user_id}", auth=AuthBearer())
+@permissions("view_user")
+def user(request, user_id:int):
+    try:
+        user = User.objects.get(id=user_id)
+        if user:
+            return {'username': user.username}
+    except Exception as e:
+        logger.critical(e)
+
+        return {"success": False}
+```
+
 ## Environment
 
 To start you'll need to install `python 3.8` , `git` and `pip`
