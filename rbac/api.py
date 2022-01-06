@@ -14,6 +14,10 @@ from django.contrib.auth.hashers import make_password
 from django.db import IntegrityError, transaction
 from users.models import AuthSub
 
+import logging
+
+logger = logging.getLogger(__file__)
+
 # api = NinjaAPI(csrf=False)
 
 api = NinjaAPI()
@@ -51,7 +55,9 @@ def user(request, user_id:int):
         user = User.objects.get(id=user_id)
         if user:
             return {'username': user.username}
-    except:
+    except Exception as e:
+        logger.critical(e)
+
         return {"success": False}
 
 @api.post("/current/user")
@@ -66,24 +72,40 @@ def addUser(request, data:UserIn=Form(...)):
     try:
         user = User.objects.create(username=data.username, password=make_password(data.password))
         return {"success": True, "message":"Created user successfully."}
-    except:
+    except Exception as e:
+        logger.critical(e)
+
         return {"success": False, "message":"Failed to create user!"}
 
-class SubUserIn(UserIn):
-    user_id: str
+# class SubUserIn(UserIn):
+    # sup_id: str
 
-@api.post("/add/sub/user")
-def addSubUser(request, data:SubUserIn = Form(...)):
+@api.post("/new/sub/to/user/{sup_id}")
+def addSubUser(request, sup_id:int, data:UserIn = Form(...)):
         try:
             with transaction.atomic():
-                sup = User.objects.get(id=data.user_id)
-
                 newSub = User(username=data.username, password=make_password(data.password))
                 newSub.save()
 
-                authSub = AuthSub(supervisor=sup, subordinate=newSub)
-                authSub.save()
+                supQs = User.objects.filter(id=sup_id)
+                if(supQs.exists()):
+                    authSub = AuthSub(supervisor=supQs.first(), subordinate=newSub)
+                    authSub.save()
 
-                return {"success":True, "message":"Subordinate user created successfully."}
-        except:
-            return {"success":False, "message":"Failed to create user!"}
+                    return {"success":True, "message":"Subordinate user created successfully."}
+                return {"success":False, "message":"Intended supervisor doesn't exist!"}
+        except Exception as e:
+            logger.critical(e)
+
+            return {"success":False, "message":"Failed to create user! Exception"}
+
+@api.post("for/user/{sup_id}/subs/all")
+def getSubs(request, sup_id:int):
+    sup = User.objects.get(id=sup_id)
+    subs = AuthSub.objects.filter(supervisor_id=sup_id)
+
+    lsubs = []
+    for sub in subs:
+        lsubs.append(sub.subordinate.username)
+
+    return {"supervidor":sup.username, "subordinates":lsubs}

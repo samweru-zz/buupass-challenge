@@ -29,6 +29,40 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+import os
+
+LOG_PATH = os.path.join(BASE_DIR, 'logs')
+
+LOGGING = {
+
+    'version': 1,
+    'disable_existing_loggers':False,
+     'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{'
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{'
+        },
+    },
+    'handlers':{
+        'console':{
+            'class':'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file':{
+            'class':'logging.FileHandler',
+            'filename':LOG_PATH + '/app.log',
+            'formatter': 'verbose'
+        },
+    },
+    'root':{
+        'handlers':['console', 'file'],
+        'level':'DEBUG',
+    },
+}
 
 # Application definition
 
