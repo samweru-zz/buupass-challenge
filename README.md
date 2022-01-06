@@ -46,7 +46,8 @@ Setting up the `logs` and `sqlite` database
 ```
 
 This script will create `logs/app.log` file, create migration and execute them.
-It will also prompt for `superuser` so, please comply. (Smiley Face)
+It will also prompt for `superuser` so, please comply. (Smiley Face).
+It will also install `requirements.txt`
 
 ## Seeding Database
 
