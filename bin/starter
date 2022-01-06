@@ -1,0 +1,10 @@
+#!/bin/bash
+
+mkdir logs
+touch logs/app.log
+chmod 666 logs/app.log
+
+pip install -r requirements.txt
+./manage.py makemigrations
+./manage.py migrate
+./manage.py createsuperuser

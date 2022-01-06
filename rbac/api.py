@@ -12,9 +12,15 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 
 from django.db import IntegrityError, transaction
-from users.models import AuthSub
+from users.models import AuthSub, AuthToken
 
 import logging
+import hashlib
+import random
+import datetime
+import pytz
+
+utc = pytz.UTC
 
 logger = logging.getLogger(__file__)
 
@@ -25,8 +31,14 @@ api = NinjaAPI()
 
 class AuthBearer(HttpBearer):
     def authenticate(self, request, token):
-        if token == "supersecret":
-            return token
+        try:
+            tokenQs = AuthToken.objects.filter(token=token)
+            if(tokenQs.exists()):
+                authToken = tokenQs.first()
+                if(authToken.expires > utc.localize(datetime.datetime.now())):
+                    return authToken.token
+        except Exception as e:
+            logger.critical(e)
 
 @api.post("/bearer", auth=AuthBearer())
 def bearer(request):
@@ -45,11 +57,16 @@ def login(request, data: UserIn):
     user = authenticate(request, username=data.username, password=data.password)
     if user is not None:
         login(request, user)
-        return {'success': True}
-    return {'success': False}
 
-# @api.post("/user/{user_id}",  auth=django_auth)
-@api.post("/user/{user_id}")
+        token = hashlib.md5(str(random.random()).encode()).hexdigest()
+        expires = datetime.datetime.now() + datetime.timedelta(minutes=60)
+
+        AuthToken.objects.create(user=user, token=token, expires=expires)
+
+        return {'success': True, "token":token}
+    return {'success': False, "message":"Couldn't find user!"}
+
+@api.post("/user/{user_id}", auth=AuthBearer())
 def user(request, user_id:int):
     try:
         user = User.objects.get(id=user_id)
@@ -60,14 +77,14 @@ def user(request, user_id:int):
 
         return {"success": False}
 
-@api.post("/current/user")
+@api.post("/current/user", auth=AuthBearer())
 def current(request):
     if request.user.is_authenticated:
         user = request.user
         return {"username": user.username}
     return {"message": "No authd user!"}
 
-@api.post("/add/user")
+@api.post("/add/user", auth=AuthBearer())
 def addUser(request, data:UserIn=Form(...)):
     try:
         user = User.objects.create(username=data.username, password=make_password(data.password))
@@ -80,7 +97,7 @@ def addUser(request, data:UserIn=Form(...)):
 # class SubUserIn(UserIn):
     # sup_id: str
 
-@api.post("/new/sub/to/user/{sup_id}")
+@api.post("/new/sub/to/user/{sup_id}", auth=AuthBearer())
 def addSubUser(request, sup_id:int, data:UserIn = Form(...)):
         try:
             with transaction.atomic():
@@ -99,7 +116,7 @@ def addSubUser(request, sup_id:int, data:UserIn = Form(...)):
 
             return {"success":False, "message":"Failed to create user! Exception"}
 
-@api.post("for/user/{sup_id}/subs/all")
+@api.post("for/user/{sup_id}/subs/all", auth=AuthBearer())
 def getSubs(request, sup_id:int):
     sup = User.objects.get(id=sup_id)
     subs = AuthSub.objects.filter(supervisor_id=sup_id)
