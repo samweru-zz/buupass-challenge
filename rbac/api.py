@@ -11,6 +11,9 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 
+from django.db import IntegrityError, transaction
+from users.models import AuthSub
+
 # api = NinjaAPI(csrf=False)
 
 api = NinjaAPI()
@@ -71,4 +74,16 @@ class SubUserIn(UserIn):
 
 @api.post("/add/sub/user")
 def addSubUser(request, data:SubUserIn = Form(...)):
-    return {"username":data.username, "password":data.password, "user_id":data.user_id}
+        try:
+            with transaction.atomic():
+                sup = User.objects.get(id=data.user_id)
+
+                newSub = User(username=data.username, password=make_password(data.password))
+                newSub.save()
+
+                authSub = AuthSub(supervisor=sup, subordinate=newSub)
+                authSub.save()
+
+                return {"success":True, "message":"Subordinate user created successfully."}
+        except:
+            return {"success":False, "message":"Failed to create user!"}
