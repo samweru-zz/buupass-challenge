@@ -5,7 +5,7 @@ This project uses an expirable bearer token which is received after login.
 The token is used for every request that requires authorization. 
 Permissions are used to enforce role based access on routes (RBAC)
 
-# Sample Code
+## Sample Code
 
 ```python
 # Found in rbac/api.py
