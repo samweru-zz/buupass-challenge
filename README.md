@@ -1,7 +1,7 @@
 Buupass Challenge
 ====
 
-This project uses a expirable bearer token which is received after login.
+This project uses an expirable bearer token which is received after login.
 The token is used for every request that requires authorization. 
 Permissions are used to enforce role based access on routes (RBAC)
 
@@ -25,13 +25,13 @@ def user(request, user_id:int):
 
 ## Environment
 
-To start you'll need to install `python 3.8` , `git` and `pip`
+To start, you'll need to install `python 3.8` , `git` and `pip`
 
 ```sh
 sudo apt update
 sudo apt install git python3.8 python3-pip
 ```
-Clone the project then run `pip` for requirements inside project folder:
+Clone the project then run `pip` for requirements inside the project folder:
 
 ```sh
 git clone https://github.com/samweru/buupass-challenge
@@ -39,7 +39,7 @@ cd buupass-challenge
 ````
 ## Setup
 
-Setting up the `logs` and `sqlite` database
+Setting up the `logs` and `sqlite` database:
 
 ```sh
 ./bin/starter
@@ -83,9 +83,8 @@ You may also view Admin database at `http://localhost:8000/api/admin` for users.
 
 ### Login
 
-In this route `/api/login` username and password fields are required which can will return
-a `bearer` token that can be used to authenticate on the `http://localhost:8000/api/docs` in browser
-via route `/api/bearer` ensure to click on the `Authorize` button first.
+In this route `/api/login` username and password fields are required, the route will return
+a `bearer` token that can be used to authenticate on `http://localhost:8000/api/docs` in browser, ensure to click on the `Authorize` button at the top first.
 
 -OR-
 
@@ -95,7 +94,7 @@ You can use `httpie` to authenticate your requests. For example:
 http POST :8000/api/current/user "Authorization: Bearer <place_secret_token_here>"
 ```
 
-You may install `httpie` via pip.
+You may install `httpie` via pip:
 
 ```sh
 pip install httpie
@@ -103,7 +102,7 @@ pip install httpie
 
 ### Note
 
-Route `/api/hello` require no bearer.
+Route `/api/hello` requires no bearer.
 
 Route `/new/sub/to/user/{sup_id}` adds a new surbordinate to a single supervisor. It also 
 requires parameters for username and password.
@@ -112,4 +111,4 @@ Route `/for/user/{sup_id}/subs/all` lists all surborinates under a single superv
 You may find code for all routes and permissions under `rbac/api.py`
 
 ***Decorators are used in code for permission, routes and http methods, it is an elegant method
-of keeping code clean and understanable.***
+of keeping code clean, understanable and easy.***
